@@ -619,7 +619,7 @@
       const riskN = items.filter((i) => inspect(i).risky).length;
       document.getElementById("banner").innerHTML = `
         <h1>先看“今天要不要去、明天会不会错过”</h1>
-        <p>平台按 2026年9月19日 理解全部模拟信息。官方、学院与学生发布会一起出现；缺字段会标明“材料未提供”，不编造时间地点。推广和私人加微内容会单独警示。</p>
+        <p>信息由平台整理，请注意甄别。</p>
         <div class="chips">
           <span class="tag ok">今日相关 ${todayN} 条</span>
           <span class="tag warn">即将截止/候补 ${soonN} 条</span>
@@ -719,7 +719,7 @@
       return `
         <div class="panel">
           <h3>今天怎么排</h3>
-          <p class="hint">只根据材料里的时间排列，不补充未给出的日程。</p>
+          <p class="hint"></p>
           ${today.length ? today.map((i) => `<p class="sub">• ${i.timeText || "今天"} ｜ ${i.title}<br><span class="missing">${i.needSignup === false ? "无需报名" : (i.signupNote || "是否报名见材料")}</span></p>`).join("") : `<p class="sub">材料中没有更多“今天”场次。</p>`}
         </div>
         <div class="panel">
@@ -728,7 +728,7 @@
         </div>
         <div class="panel">
           <h3>本产品怎么处理乱信息</h3>
-          <p class="hint">学生可以发约球、组队和学习交流；但“加私人微信日结兼职”、只有购买链接的“交流会”会标成需留意，默认仍可见，也可一键隐藏。缺失字段显示为“材料未提供”，不编造。</p>
+          <p class="hint">学生可以发约球、组队和学习交流；但“加私人微信日结兼职”、只有购买链接的“交流会”会标成需留意，默认仍可见，也可一键隐藏。</p>
         </div>`;
     }
 
@@ -745,10 +745,10 @@
             <span class="tag ${statusOf(item).cls}">${statusOf(item).text}</span>
           </div>
           <div class="fact">
-            <b>时间</b><span>${item.timeText || '<span class="missing">材料未提供明确时间</span>'}</span>
-            <b>地点</b><span>${item.place || '<span class="missing">材料未提供地点</span>'}</span>
-            <b>对象</b><span>${item.audience || '<span class="missing">材料未提供</span>'}</span>
-            <b>参与方式</b><span>${item.signupNote || (item.needSignup ? "需报名" : item.needSignup === false ? "无需报名" : '<span class="missing" >材料未说明是否需要报名</span>')}</span>
+            <b>时间</b><span>${item.timeText || '<span class="missing"></span>'}</span>
+            <b>地点</b><span>${item.place || '<span class="missing"></span>'}</span>
+            <b>对象</b><span>${item.audience || '<span class="missing"></span>'}</span>
+            <b>参与方式</b><span>${item.signupNote || (item.needSignup ? "需报名" : item.needSignup === false ? "无需报名" : '<span class="missing" ></span>')}</span>
             <b>新生参考</b><span>${freshmanFit(item)}</span>
           </div>
           <p class="sub">${item.body}</p>
