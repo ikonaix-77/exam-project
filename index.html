@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园机会看板 · 新生向活动与招募</title>
+  <style>
+    :root {
+      --bg: #f3f1ea;
+      --paper: #fffdf8;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --line: #e7e0d4;
+      --brand: #0f766e;
+      --brand-dark: #115e59;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok: #047857;
+      --shadow: 0 12px 32px rgba(28, 25, 23, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    a { color: inherit; }
+    button, input, select, textarea { font-family: inherit; }
+    .top {
+      position: sticky; top: 0; z-index: 20;
+      background: #134e4a; color: #fff;
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 20px; flex-wrap: wrap;
+    }
+    .logo { font-weight: 800; font-size: 18px; white-space: nowrap; }
+    .logo small { display: block; font-weight: 400; font-size: 11px; opacity: .8; }
+    .tabs { display: flex; gap: 8px; }
+    .tabs button {
+      border: 0; background: transparent; color: #ccfbf1;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer;
+    }
+    .tabs button.active { background: #0f766e; color: #fff; }
+    .search {
+      flex: 1; min-width: 220px; max-width: 420px;
+      border: 0; border-radius: 999px; padding: 9px 14px;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 22px 16px 56px; }
+    .banner {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 18px; padding: 18px 20px; margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .banner h1 { font-size: 24px; margin-bottom: 6px; }
+    .banner p, .hint { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip, .filter-btn {
+      border: 1px solid var(--line); background: #fff; color: var(--ink);
+      border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px;
+    }
+    .chip.active, .filter-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .layout { display: grid; grid-template-columns: 1.4fr .8fr; gap: 16px; }
+    .col { display: flex; flex-direction: column; gap: 12px; }
+    .card, .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 16px; padding: 16px; box-shadow: var(--shadow);
+    }
+    .card { cursor: pointer; }
+    .card:hover { border-color: #99f6e4; }
+    .card.risk { border-color: #fecaca; background: #fff7f7; }
+    .row { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    h2 { font-size: 17px; line-height: 1.4; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .tag { font-size: 12px; border-radius: 999px; padding: 3px 8px; background: #ecfdf5; color: #047857; }
+    .tag.college { background: #e0f2fe; color: #0369a1; }
+    .tag.school { background: #eef2ff; color: #3730a3; }
+    .tag.student { background: #fef3c7; color: #92400e; }
+    .tag.warn { background: #fff7ed; color: #c2410c; }
+    .tag.danger { background: #fee2e2; color: #b91c1c; }
+    .tag.muted { background: #f5f5f4; color: #57534e; }
+    .tag.ok { background: #d1fae5; color: #065f46; }
+    .sub { color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .actions button, .btn {
+      border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer;
+      font-size: 13px; font-weight: 700;
+    }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-ghost { background: #fff; border: 1px solid var(--line); }
+    .btn-warn { background: #fff7ed; color: #9a3412; }
+    .empty { text-align: center; color: var(--muted); padding: 28px; }
+    .panel h3 { margin-bottom: 10px; }
+    .fact { display: grid; grid-template-columns: 88px 1fr; gap: 6px 10px; font-size: 14px; margin: 10px 0 14px; }
+    .fact b { color: var(--muted); font-weight: 600; }
+    .missing { color: var(--warn); }
+    .notice {
+      background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
+      padding: 10px 12px; font-size: 13px; margin: 8px 0; line-height: 1.55;
+    }
+    .notice.danger { background: #fef2f2; border-color: #fecaca; color: #7f1d1d; }
+    .notice.ok { background: #ecfdf5; border-color: #a7f3d0; }
+    form { display: grid; gap: 8px; }
+    label { font-size: 13px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 10px;
+      padding: 9px 10px; background: #fff;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    .toast {
+      position: fixed; right: 16px; bottom: 16px; background: #134e4a; color: #fff;
+      padding: 12px 16px; border-radius: 12px; display: none; z-index: 40;
+    }
+    dialog {
+      border: 0; border-radius: 18px; padding: 0; width: min(720px, 94vw);
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop { background: rgba(28,25,23,.45); }
+    .modal { padding: 20px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="logo">校园机会看板<small>考核日按 2026-09-19 理解时间 · 面向新生</small></div>
+    <nav class="tabs">
+      <button class="active" data-view="home">今日速览</button>
+      <button data-view="all">全部信息</button>
+      <button data-view="publish">我要发布</button>
+      <button data-view="mine">我的</button>
+    </nav>
+    <input class="search" id="q" placeholder="搜索标题、学院、地点、对象...">
+  </header>
+
+  <main class="wrap">
+    <section class="banner" id="banner"></section>
+    <div class="chips" id="filters"></div>
+    <div class="layout">
+      <section class="col" id="list"></section>
+      <aside class="col" id="side"></aside>
+    </div>
+  </main>
+  <div class="toast" id="toast"></div>
+  <dialog id="dlg"></dialog>
+
+  <script>
+    const TODAY = "2026-09-19";
+    const STORE = "campus-board-v1";
+    const SOURCE_LABEL = {
+      school: "校级/赛事",
+      college: "学院发布",
+      student: "学生发起",
+      user: "我发布的"
+    };
+
+    const BASE = [
+      {
+        id: "01",
+        title: "“蓝桥杯”程序设计校内训练营",
+        source: "school",
+        kind: "训练/学习",
+        audience: "面向全校学生；零基础可参加",
+        timeText: "原计划 9月20日起每周六 19:00 训练",
+        place: "",
+        deadline: "2026-09-24T22:00",
+        needSignup: true,
+        signupNote: "需报名，9月24日22:00截止",
+        related: ["09"],
+        body: "9月24日22:00报名截止；原计划9月20日起每周六19:00训练；面向全校学生；零基础可参加。"
+      },
+      {
+        id: "02",
+        title: "AI应用入门公开课",
+        source: "college",
+        org: "计算机学院",
+        kind: "讲座/公开课",
+        audience: "面向全校学生",
+        timeText: "9月19日 19:00，预计90分钟",
+        start: "2026-09-19T19:00",
+        place: "计算机学院教学楼",
+        needSignup: false,
+        signupNote: "无需报名",
+        body: "9月19日19:00；计算机学院教学楼；面向全校学生；无需报名；预计90分钟。"
+      },
+      {
+        id: "03",
+        title: "大学生创新创业项目团队招募",
+        source: "school",
+        kind: "项目招募",
+        audience: "招募开发、设计、材料成员；每周需稳定投入4小时以上",
+        timeText: "",
+        deadline: "2026-09-22T18:00",
+        needSignup: true,
+        signupNote: "需提交简短自我介绍；9月22日18:00截止",
+        related: ["20"],
+        body: "招募开发、设计、材料成员；每周需稳定投入4小时以上；9月22日18:00截止；需提交简短自我介绍。"
+      },
+      {
+        id: "04",
+        title: "数学建模竞赛经验分享会",
+        source: "school",
+        kind: "讲座/公开课",
+        audience: "不限专业",
+        timeText: "直播时间 9月18日 19:30（已结束）",
+        start: "2026-09-18T19:30",
+        place: "线上直播",
+        needSignup: false,
+        ended: true,
+        extra: "活动方预计9月20日上传回放",
+        body: "直播时间为9月18日19:30；不限专业；直播已结束，活动方预计9月20日上传回放。"
+      },
+      {
+        id: "05",
+        title: "校园公益志愿服务活动",
+        source: "school",
+        kind: "志愿服务",
+        audience: "未写明限制对象",
+        timeText: "9月27日 8:30—17:00，预计服务8小时",
+        start: "2026-09-27T08:30",
+        deadline: "2026-09-20T12:00",
+        needSignup: true,
+        signupNote: "9月20日12:00报名截止；需提前到场签到",
+        body: "活动时间9月27日8:30—17:00；9月20日12:00报名截止；预计服务8小时；需提前到场签到。"
+      },
+      {
+        id: "06",
+        title: "Web开发零基础学习小组",
+        source: "student",
+        kind: "训练/学习",
+        audience: "面向零基础学生；限30人",
+        timeText: "9月23日起每周三19:30，共6周",
+        start: "2026-09-23T19:30",
+        place: "",
+        needSignup: true,
+        signupNote: "报名时间未注明，满员即止",
+        unknownDeadline: true,
+        body: "9月23日起每周三19:30开展，共6周；面向零基础学生；限30人；报名时间未注明，满员即止。"
+      },
+      {
+        id: "07",
+        title: "AI创新应用挑战赛",
+        source: "school",
+        kind: "竞赛",
+        audience: "2—4人组队",
+        timeText: "10月20日提交作品",
+        deadline: "2026-09-21T18:00",
+        needSignup: true,
+        signupNote: "9月21日18:00前完成校内意向登记；意向登记不等同于最终作品提交",
+        extra: "10月20日提交作品",
+        body: "2—4人组队；9月21日18:00前完成校内意向登记；10月20日提交作品；意向登记不等同于最终作品提交。"
+      },
+      {
+        id: "08",
+        title: "校园软件项目组招募",
+        source: "student",
+        kind: "项目招募",
+        audience: "面向大一、大二学生；希望成员了解Git基本操作；每周预计投入5小时",
+        timeText: "长期招募",
+        needSignup: true,
+        signupNote: "长期招募，满员即止",
+        unknownDeadline: true,
+        extra: "开发校园实用工具",
+        body: "开发校园实用工具；面向大一、大二学生；希望成员了解Git基本操作；每周预计投入5小时；长期招募，满员即止。"
+      },
+      {
+        id: "09",
+        title: "程序设计训练营补充通知",
+        source: "school",
+        kind: "补充通知",
+        audience: "已报名同学无需重复提交",
+        timeText: "首次训练改为 9月21日 19:30",
+        start: "2026-09-21T19:30",
+        place: "实验楼A402",
+        related: ["01"],
+        extra: "因场地调整；报名截止时间不变（仍为9月24日22:00）",
+        body: "因场地调整，首次训练改为9月21日19:30，地点改至实验楼A402；已报名同学无需重复提交；报名截止时间不变。"
+      },
+      {
+        id: "10",
+        title: "前端开发经验交流会",
+        source: "school",
+        kind: "讲座/公开课",
+        audience: "材料未写明对象限制",
+        timeText: "9月19日 15:00—16:30",
+        start: "2026-09-19T15:00",
+        place: "线下A201并同步线上直播",
+        needSignup: false,
+        signupNote: "无需报名",
+        body: "9月19日15:00—16:30；线下A201并同步线上直播；无需报名。"
+      },
+      {
+        id: "11",
+        title: "大学生科研入门分享会",
+        source: "school",
+        kind: "讲座/公开课",
+        audience: "面向全校学生",
+        timeText: "9月21日 19:00—20:30",
+        start: "2026-09-21T19:00",
+        place: "",
+        needSignup: null,
+        signupNote: "材料未说明是否需要报名",
+        extra: "介绍论文检索、学生科研项目和导师联系方法",
+        body: "9月21日19:00—20:30；介绍论文检索、学生科研项目和导师联系方法；面向全校学生。"
+      },
+      {
+        id: "12",
+        title: "全国高校计算机能力挑战赛",
+        source: "school",
+        kind: "竞赛",
+        audience: "面向本科生；个人参赛",
+        timeText: "",
+        deadline: "2026-10-05T23:59",
+        needSignup: true,
+        signupNote: "10月5日23:59报名截止",
+        extra: "具体费用信息未提供",
+        body: "面向本科生；10月5日23:59报名截止；个人参赛；具体费用信息未提供。"
+      },
+      {
+        id: "13",
+        title: "科研助理招募",
+        source: "school",
+        kind: "项目招募",
+        audience: "仅限大二及以上学生；每周预计投入6小时",
+        extra: "协助数据整理和实验工作",
+        deadline: "2026-09-21",
+        needSignup: true,
+        signupNote: "9月21日截止报名（材料未给到具体时刻）",
+        body: "协助数据整理和实验工作；仅限大二及以上学生；每周预计投入6小时；9月21日截止报名。"
+      },
+      {
+        id: "14",
+        title: "Git与GitHub零基础工作坊",
+        source: "school",
+        kind: "训练/学习",
+        audience: "主要面向大一新生；限40人",
+        timeText: "9月21日 19:00—20:30",
+        start: "2026-09-21T19:00",
+        place: "",
+        needSignup: true,
+        signupNote: "需提前预约。提交报名表不代表最终录取，以审核通知为准",
+        body: "9月21日19:00—20:30；主要面向大一新生；限40人；需提前预约，提交报名表不代表最终录取，以审核通知为准。"
+      },
+      {
+        id: "15",
+        title: "AI应用创意挑战",
+        source: "school",
+        kind: "竞赛",
+        audience: "允许个人或团队参加",
+        timeText: "9月23日23:59前提交创意方案；9月30日前提交最终作品",
+        deadline: "2026-09-23T23:59",
+        extra: "进入展示环节后可再组队",
+        needSignup: true,
+        signupNote: "先提交创意方案",
+        body: "9月23日23:59前提交创意方案；9月30日前提交最终作品；允许个人或团队参加；进入展示环节后可再组队。"
+      },
+      {
+        id: "16",
+        title: "校园摄影志愿者招募",
+        source: "school",
+        kind: "志愿服务",
+        audience: "有摄影设备者优先但不作硬性要求",
+        timeText: "长期招募；参与校内大型活动摄影",
+        needSignup: true,
+        unknownDeadline: true,
+        signupNote: "具体报名截止时间未注明",
+        body: "长期招募；参与校内大型活动摄影；具体报名截止时间未注明；有摄影设备者优先但不作硬性要求。"
+      },
+      {
+        id: "17",
+        title: "Python程序设计学习资料合集",
+        source: "school",
+        kind: "资料",
+        audience: "资料长期开放",
+        timeText: "资料长期开放",
+        extra: "当前网盘提取信息有效至9月22日，后续将统一更新",
+        needSignup: false,
+        body: "包含课程、练习和项目案例；资料长期开放；当前网盘提取信息有效至9月22日，后续将统一更新。"
+      },
+      {
+        id: "18",
+        title: "网络安全兴趣交流小组",
+        source: "student",
+        kind: "兴趣活动",
+        audience: "面向CTF、Web安全等方向感兴趣的学生；不限基础",
+        timeText: "首次交流 9月19日19:30，之后每两周一次",
+        start: "2026-09-19T19:30",
+        place: "",
+        needSignup: null,
+        signupNote: "材料未说明是否需要报名",
+        body: "首次交流时间为9月19日19:30；之后每两周开展一次；面向CTF、Web安全等方向感兴趣的学生；不限基础。"
+      },
+      {
+        id: "19",
+        title: "学生创新项目路演观摩",
+        source: "school",
+        kind: "讲座/公开课",
+        audience: "材料未写明对象限制",
+        timeText: "9月20日 14:30",
+        start: "2026-09-20T14:30",
+        deadline: "2026-09-18T22:00",
+        waitlist: true,
+        extra: "原报名截止时间为9月18日22:00；活动方说明如现场仍有余位，可接受候补入场",
+        body: "活动时间9月20日14:30；原报名截止时间为9月18日22:00；活动方说明如现场仍有余位，可接受候补入场。"
+      },
+      {
+        id: "20",
+        title: "创新创业项目团队补充说明",
+        source: "school",
+        kind: "补充通知",
+        audience: "现主要补充设计与材料成员",
+        deadline: "2026-09-22T18:00",
+        related: ["03"],
+        extra: "开发方向名额已满；此前已投递者无需重复提交",
+        body: "开发方向名额已满，现主要补充设计与材料成员；9月22日18:00截止；此前已投递者无需重复提交。"
+      },
+      {
+        id: "21",
+        title: "计算机学院AI产品设计分享会",
+        source: "college",
+        org: "计算机学院",
+        kind: "讲座/公开课",
+        audience: "面向全校学生",
+        timeText: "9月20日 19:00",
+        start: "2026-09-20T19:00",
+        place: "明德楼B203",
+        needSignup: false,
+        signupNote: "无需报名，座位有限",
+        body: "计算机学院发布；9月20日19:00；明德楼B203；面向全校学生；无需报名，座位有限。"
+      },
+      {
+        id: "22",
+        title: "周末羽毛球约球",
+        source: "student",
+        kind: "兴趣活动",
+        audience: "计划6—8人；费用AA",
+        timeText: "9月20日 16:00",
+        start: "2026-09-20T16:00",
+        place: "场地待最终确认",
+        needSignup: true,
+        signupNote: "学生个人发布",
+        extra: "场地待最终确认",
+        body: "学生个人发布；9月20日16:00；计划6—8人；费用AA；场地待最终确认。"
+      },
+      {
+        id: "23",
+        title: "AI工具交流搭子招募",
+        source: "student",
+        kind: "兴趣活动",
+        audience: "欢迎零基础",
+        timeText: "拟于9月21日晚开展",
+        start: "2026-09-21T19:00",
+        timeUncertain: true,
+        place: "具体地点未确定",
+        needSignup: true,
+        extra: "报名后拉群；具体地点未确定",
+        body: "学生个人发布；拟于9月21日晚开展；欢迎零基础；报名后拉群；具体地点未确定。"
+      },
+      {
+        id: "24",
+        title: "“校园兼职福利分享”",
+        source: "student",
+        kind: "需留意",
+        audience: "称“零门槛、日结”",
+        timeText: "",
+        place: "",
+        risk: "private-contact",
+        extra: "要求添加私人微信获取详情；未提供主办方、地点和完整内容",
+        body: "学生个人发布；称“零门槛、日结”，要求添加私人微信获取详情；未提供主办方、地点和完整内容。"
+      },
+      {
+        id: "25",
+        title: "数码新品体验交流",
+        source: "student",
+        kind: "需留意",
+        audience: "标题为技术交流",
+        timeText: "",
+        place: "",
+        risk: "promo",
+        extra: "正文主要介绍某商家优惠及购买链接；活动时间、地点未注明",
+        body: "学生个人发布；标题为技术交流，正文主要介绍某商家优惠及购买链接；活动时间、地点未注明。"
+      },
+      {
+        id: "26",
+        title: "外国语学院校园语言角",
+        source: "college",
+        org: "外国语学院",
+        kind: "兴趣活动",
+        audience: "面向全校学生；自由交流",
+        timeText: "9月21日 15:00",
+        start: "2026-09-21T15:00",
+        place: "",
+        needSignup: false,
+        signupNote: "无需提前报名；场地容量有限",
+        body: "外国语学院发布；9月21日15:00；面向全校学生；自由交流；场地容量有限，无需提前报名。"
+      }
+    ];
+
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
+      catch { return {}; }
+    }
+    function saveState(patch) {
+      const next = { ...loadState(), ...patch };
+      localStorage.setItem(STORE, JSON.stringify(next));
+      return next;
+    }
+    function state() {
+      const s = loadState();
+      return {
+        joined: s.joined || [],
+        fav: s.fav || [],
+        published: s.published || [],
+        hideRisk: !!s.hideRisk,
+        notes: s.notes || {}
+      };
+    }
+
+    function inspect(item) {
+      const missing = [];
+      if (!item.place) missing.push("地点");
+      if (!item.timeText && !item.start && !item.deadline) missing.push("时间");
+      if (item.unknownDeadline) missing.push("报名截止时间");
+      if (item.needSignup === null) missing.push("是否需要报名");
+      if (item.extra && item.extra.includes("费用信息未提供")) missing.push("费用");
+      if (item.risk === "private-contact") missing.push("主办方/地点/完整内容");
+      if (item.risk === "promo") missing.push("活动时间/地点");
+
+      const flags = [];
+      if (item.risk === "private-contact") flags.push("要求添加私人微信，且缺少主办方与完整内容，请谨慎对待，不宜作为正规校园活动报名。");
+      if (item.risk === "promo") flags.push("标题像交流活动，正文主要是商家优惠和购买链接，更像推广信息。");
+      if (item.waitlist) flags.push("正式报名已过截止，仅在现场仍有余位时可候补入场。");
+      if (item.id === "07") flags.push("意向登记不等于最终作品提交。");
+      if (item.id === "14") flags.push("提交报名表不代表最终录取，以审核通知为准。");
+      if (item.id === "17") flags.push("网盘提取信息仅有效至9月22日，后续将统一更新。");
+      if (item.timeUncertain) flags.push("时间表述为“拟于”，尚未完全确定。");
+      if (item.place === "场地待最终确认" || item.place === "具体地点未确定") flags.push("地点尚未确定。");
+      return { missing, flags, risky: !!item.risk };
+    }
+
+    function now() { return new Date(TODAY + "T12:00:00"); }
+    function parseDate(v) { return v ? new Date(v) : null; }
+
+    function statusOf(item) {
+      const n = now();
+      if (item.ended) return { text: "已结束", cls: "muted" };
+      if (item.risk) return { text: "需留意", cls: "danger" };
+      if (item.waitlist) return { text: "可候补", cls: "warn" };
+      const deadline = item.deadline || "";
+      const dl = deadline ? parseDate(deadline.length === 10 ? deadline + "T23:59:59" : deadline) : null;
+      if (deadline && deadline.slice(0, 10) < TODAY) return { text: "报名已截止", cls: "muted" };
+      if (deadline && deadline.slice(0, 10) === TODAY) return { text: "今日截止", cls: "warn" };
+      if (dl && dl < n && deadline.length > 10) return { text: "报名已截止", cls: "muted" };
+      if (item.start) {
+        const day = item.start.slice(0, 10);
+        if (day === TODAY) return { text: "今天举行", cls: "ok" };
+        if (day < TODAY && !deadline) return { text: "已开始/已过", cls: "muted" };
+      }
+      if (dl) {
+        const hours = (dl - n) / 36e5;
+        if (hours <= 48) return { text: "即将截止", cls: "warn" };
+        return { text: "报名进行中", cls: "ok" };
+      }
+      if (item.unknownDeadline) return { text: "长期/满员即止", cls: "warn" };
+      if (item.needSignup === false) return { text: "无需报名", cls: "ok" };
+      return { text: "信息待核对", cls: "muted" };
+    }
+
+    function freshmanFit(item) {
+      const t = (item.audience || "") + (item.body || "");
+      if (item.risk) return "不建议新生当作正式机会";
+      if (/仅限大二及以上/.test(t)) return "材料写明仅限大二及以上";
+      if (/零基础|大一新生|面向全校|不限专业|不限基础|大一、大二/.test(t)) return "较适合新生了解或参加";
+      return "材料未专门说明是否适合新生";
+    }
+
+    function allItems() {
+      return BASE.concat(state().published);
+    }
+    function byId(id) { return allItems().find((x) => x.id === id); }
+
+    let view = "home";
+    let filter = "today";
+    let selected = null;
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 1800);
+    }
+
+    function matchesQuery(item, q) {
+      if (!q) return true;
+      const blob = [item.title, item.body, item.org, item.place, item.audience, item.kind, SOURCE_LABEL[item.source]].join(" ").toLowerCase();
+      return blob.includes(q.toLowerCase());
+    }
+
+    function inFilter(item) {
+      const st = statusOf(item);
+      if (filter === "today") {
+        return st.text === "今天举行" || (item.start || "").startsWith(TODAY);
+      }
+      if (filter === "soon") return st.text === "即将截止" || st.text === "可候补";
+      if (filter === "fresh") return /适合新生/.test(freshmanFit(item));
+      if (filter === "official") return item.source === "school" || item.source === "college";
+      if (filter === "student") return item.source === "student" || item.source === "user";
+      if (filter === "risk") return inspect(item).risky;
+      return true;
+    }
+
+    function renderBanner() {
+      const items = allItems();
+      const todayN = items.filter((i) => statusOf(i).text === "今天举行" || (i.start || "").startsWith(TODAY)).length;
+      const soonN = items.filter((i) => ["即将截止", "可候补"].includes(statusOf(i).text)).length;
+      const riskN = items.filter((i) => inspect(i).risky).length;
+      document.getElementById("banner").innerHTML = `
+        <h1>先看“今天要不要去、明天会不会错过”</h1>
+        <p>平台按 2026年9月19日 理解全部模拟信息。官方、学院与学生发布会一起出现；缺字段会标明“材料未提供”，不编造时间地点。推广和私人加微内容会单独警示。</p>
+        <div class="chips">
+          <span class="tag ok">今日相关 ${todayN} 条</span>
+          <span class="tag warn">即将截止/候补 ${soonN} 条</span>
+          <span class="tag danger">需留意 ${riskN} 条</span>
+          <span class="tag muted">当前日期 ${TODAY}</span>
+        </div>
+      `;
+    }
+
+    function renderFilters() {
+      const options = view === "home"
+        ? [["today","今天"],["soon","即将截止"],["fresh","适合新生"],["risk","需留意"]]
+        : [["all","全部"],["today","今天"],["soon","即将截止"],["official","学校/学院"],["student","学生发布"],["fresh","适合新生"],["risk","需留意"]];
+      if (view === "home" && !options.some((x) => x[0] === filter)) filter = "today";
+      if (view === "all" && filter === "today" && !document.getElementById("q").value) filter = "all";
+      document.getElementById("filters").innerHTML = options.map(([k, n]) =>
+        `<button class="filter-btn ${filter === k ? "active" : ""}" data-f="${k}">${n}</button>`
+      ).join("") + `<label class="sub" style="display:flex;align-items:center;gap:6px;margin-left:8px;">
+        <input type="checkbox" id="hideRisk" ${state().hideRisk ? "checked" : ""}> 隐藏需留意信息
+      </label>`;
+    }
+
+    function cardHTML(item) {
+      const st = statusOf(item);
+      const ins = inspect(item);
+      const s = state();
+      const joined = s.joined.includes(item.id);
+      const fav = s.fav.includes(item.id);
+      const related = (item.related || []).map((id) => byId(id)).filter(Boolean);
+      return `
+        <article class="card ${ins.risky ? "risk" : ""}" data-open="${item.id}">
+          <div class="row">
+            <div>
+              <h2>${item.title}</h2>
+              <div class="meta">
+                <span class="tag ${item.source}">${item.org || SOURCE_LABEL[item.source]}</span>
+                <span class="tag muted">${item.kind}</span>
+                <span class="tag ${st.cls}">${st.text}</span>
+                ${ins.missing.length ? `<span class="tag warn">缺：${ins.missing.slice(0,2).join("、")}</span>` : ""}
+                ${joined ? `<span class="tag ok">已记录</span>` : ""}
+                ${fav ? `<span class="tag student">已收藏</span>` : ""}
+              </div>
+              <p class="sub">${item.timeText || item.signupNote || item.body}</p>
+              ${related.length ? `<p class="sub">关联通知：${related.map((r) => r.title).join("；")}</p>` : ""}
+            </div>
+            <div class="actions" onclick="event.stopPropagation()">
+              <button class="btn-primary" data-act="join" data-id="${item.id}" ${ins.risky ? "disabled" : ""}>${joinLabel(item, joined)}</button>
+              <button class="btn-ghost" data-act="fav" data-id="${item.id}">${fav ? "已收藏" : "收藏"}</button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function joinLabel(item, joined) {
+      if (inspect(item).risky) return "不建议操作";
+      if (joined) {
+        if (item.waitlist) return "已候补";
+        if (item.needSignup === false) return "已标记参加";
+        if (item.id === "07") return "已意向登记";
+        if (item.id === "14") return "已预约（待审核）";
+        return "已报名";
+      }
+      if (item.waitlist) return "候补入场";
+      if (item.needSignup === false) return "标记参加";
+      if (item.id === "07") return "意向登记";
+      if (item.id === "14") return "预约报名";
+      if (item.kind === "资料") return "收下资料提醒";
+      if (statusOf(item).text === "报名已截止" || item.ended) return "已不可报名";
+      return "报名/登记";
+    }
+
+    function canJoin(item) {
+      if (inspect(item).risky || item.ended) return false;
+      if (item.waitlist) return true;
+      if (item.needSignup === false || item.kind === "资料") return true;
+      const st = statusOf(item).text;
+      return !["报名已截止", "已结束"].includes(st);
+    }
+
+    function renderList() {
+      const q = document.getElementById("q").value.trim();
+      let items = allItems().filter((i) => matchesQuery(i, q) && inFilter(i));
+      if (state().hideRisk) items = items.filter((i) => !inspect(i).risky);
+      if (view === "mine") {
+        const s = state();
+        items = allItems().filter((i) => s.joined.includes(i.id) || s.fav.includes(i.id) || s.published.some((p) => p.id === i.id));
+      }
+      const el = document.getElementById("list");
+      if (view === "publish") { el.innerHTML = publishForm(); return; }
+      if (!items.length) { el.innerHTML = `<div class="empty">没有符合条件的信息。可切换筛选或发布一条学生活动。</div>`; return; }
+      el.innerHTML = items.map(cardHTML).join("");
+    }
+
+    function sideHome() {
+      const today = allItems().filter((i) => (i.start || "").startsWith(TODAY) || statusOf(i).text === "今天举行");
+      const soon = allItems().filter((i) => ["即将截止", "可候补"].includes(statusOf(i).text));
+      return `
+        <div class="panel">
+          <h3>今天怎么排</h3>
+          <p class="hint">只根据材料里的时间排列，不补充未给出的日程。</p>
+          ${today.length ? today.map((i) => `<p class="sub">• ${i.timeText || "今天"} ｜ ${i.title}<br><span class="missing">${i.needSignup === false ? "无需报名" : (i.signupNote || "是否报名见材料")}</span></p>`).join("") : `<p class="sub">材料中没有更多“今天”场次。</p>`}
+        </div>
+        <div class="panel">
+          <h3>别错过的截止</h3>
+          ${soon.map((i) => `<p class="sub">• ${i.title}<br>${i.signupNote || i.extra || ""}</p>`).join("") || `<p class="sub">暂无即将截止项。</p>`}
+        </div>
+        <div class="panel">
+          <h3>本产品怎么处理乱信息</h3>
+          <p class="hint">学生可以发约球、组队和学习交流；但“加私人微信日结兼职”、只有购买链接的“交流会”会标成需留意，默认仍可见，也可一键隐藏。缺失字段显示为“材料未提供”，不编造。</p>
+        </div>`;
+    }
+
+    function sideDetail(item) {
+      if (!item) return sideHome();
+      const ins = inspect(item);
+      const related = (item.related || []).map(byId).filter(Boolean);
+      const s = state();
+      return `
+        <div class="panel">
+          <h3>${item.title}</h3>
+          <div class="meta">
+            <span class="tag ${item.source}">${item.org || SOURCE_LABEL[item.source]}</span>
+            <span class="tag ${statusOf(item).cls}">${statusOf(item).text}</span>
+          </div>
+          <div class="fact">
+            <b>时间</b><span>${item.timeText || '<span class="missing">材料未提供明确时间</span>'}</span>
+            <b>地点</b><span>${item.place || '<span class="missing">材料未提供地点</span>'}</span>
+            <b>对象</b><span>${item.audience || '<span class="missing">材料未提供</span>'}</span>
+            <b>参与方式</b><span>${item.signupNote || (item.needSignup ? "需报名" : item.needSignup === false ? "无需报名" : '<span class="missing" >材料未说明是否需要报名</span>')}</span>
+            <b>新生参考</b><span>${freshmanFit(item)}</span>
+          </div>
+          <p class="sub">${item.body}</p>
+          ${item.extra ? `<div class="notice">${item.extra}</div>` : ""}
+          ${ins.flags.map((f) => `<div class="notice ${ins.risky ? "danger" : ""}">${f}</div>`).join("")}
+          ${ins.missing.length ? `<div class="notice">以下信息材料未给出，页面不会自行补全：${ins.missing.join("、")}</div>` : `<div class="notice ok">关键字段相对完整。</div>`}
+          ${related.length ? `<div class="notice">关联更新：${related.map((r) => r.title + " — " + r.body).join("<br>")}</div>` : ""}
+          <div class="actions" style="margin-top:12px;">
+            <button class="btn-primary" data-act="join" data-id="${item.id}" ${!canJoin(item) || ins.risky ? "disabled" : ""}>${joinLabel(item, s.joined.includes(item.id))}</button>
+            <button class="btn-ghost" data-act="fav" data-id="${item.id}">${s.fav.includes(item.id) ? "取消收藏" : "收藏"}</button>
+          </div>
+        </div>`;
+    }
+
+    function publishForm() {
+      return `
+        <div class="card" style="cursor:default;">
+          <h2>发布学生活动 / 招募伙伴</h2>
+          <p class="sub">发布后会进入“全部信息”和“学生发布”，刷新后仍保留。不会伪装成学院通知。若内容像广告或缺少时间地点，系统会先提示。</p>
+          <form id="pub">
+            <label>标题</label>
+            <input name="title" required placeholder="例如：周末图书馆组队自习">
+            <label>类型</label>
+            <select name="kind">
+              <option>兴趣活动</option>
+              <option>项目招募</option>
+              <option>训练/学习</option>
+              <option>志愿服务</option>
+              <option>讲座/公开课</option>
+            </select>
+            <label>时间（没有就留空，不要编造）</label>
+            <input name="timeText" placeholder="例如：9月21日 19:00">
+            <label>地点（没有就留空）</label>
+            <input name="place" placeholder="未定时请留空">
+            <label>面向对象 / 人数 / 费用</label>
+            <input name="audience" placeholder="例如：欢迎零基础，AA">
+            <label>说明</label>
+            <textarea name="body" required placeholder="写清你在找什么人、怎么联系。不要只留私人微商链接。"></textarea>
+            <button class="btn btn-primary" type="submit">发布到看板</button>
+          </form>
+        </div>`;
+    }
+
+    function renderSide() {
+      const aside = document.getElementById("side");
+      if (view === "publish") {
+        aside.innerHTML = `<div class="panel"><h3>发布前自检</h3><p class="hint">有时间、地点和公开参与方式的信息更容易被同学信任。要求加私人微信、只发购买链接，会被标成需留意。</p></div>`;
+        return;
+      }
+      if (view === "mine") {
+        const s = state();
+        aside.innerHTML = `<div class="panel"><h3>我的结果</h3>
+          <p class="sub">已记录 ${s.joined.length} 项，收藏 ${s.fav.length} 项，自己发布 ${s.published.length} 项。这些数据存在本机浏览器，刷新仍在。</p></div>`;
+        return;
+      }
+      aside.innerHTML = selected ? sideDetail(byId(selected)) : sideHome();
+    }
+
+    function render() {
+      renderBanner();
+      renderFilters();
+      renderList();
+      renderSide();
+    }
+
+    document.querySelector(".tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      view = btn.dataset.view;
+      selected = null;
+      filter = view === "home" ? "today" : view === "all" ? "all" : "all";
+      document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+      render();
+    });
+    document.getElementById("filters").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-f]");
+      if (btn) { filter = btn.dataset.f; selected = null; render(); }
+    });
+    document.getElementById("filters").addEventListener("change", (e) => {
+      if (e.target.id === "hideRisk") { saveState({ hideRisk: e.target.checked }); render(); }
+    });
+    document.getElementById("q").addEventListener("input", render);
+    document.body.addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]");
+      if (act) {
+        const id = act.dataset.id;
+        const item = byId(id);
+        const s = state();
+        if (act.dataset.act === "fav") {
+          const fav = s.fav.includes(id) ? s.fav.filter((x) => x !== id) : s.fav.concat(id);
+          saveState({ fav });
+          toast(s.fav.includes(id) ? "已取消收藏" : "已收藏，刷新后仍在");
+        }
+        if (act.dataset.act === "join") {
+          if (!canJoin(item) || inspect(item).risky) { toast("该信息不宜按正规报名处理"); return; }
+          if (s.joined.includes(id)) { toast("已经记录过了"); }
+          else { saveState({ joined: s.joined.concat(id) }); toast("已写入“我的”，刷新后仍保留"); }
+        }
+        render();
+        return;
+      }
+      const card = e.target.closest("[data-open]");
+      if (card) {
+        selected = card.dataset.open;
+        view = "all";
+        filter = "all";
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.view === "all"));
+        render();
+      }
+    });
+    document.body.addEventListener("submit", (e) => {
+      if (e.target.id !== "pub") return;
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = String(fd.get("body") || "");
+      const title = String(fd.get("title") || "").trim();
+      const place = String(fd.get("place") || "").trim();
+      const timeText = String(fd.get("timeText") || "").trim();
+      let risk = "";
+      if (/微信|日结|购买链接|优惠/.test(title + body)) risk = /购买链接|优惠/.test(title + body) ? "promo" : "private-contact";
+      const item = {
+        id: "u" + Date.now(),
+        title,
+        source: "user",
+        kind: String(fd.get("kind")),
+        audience: String(fd.get("audience") || ""),
+        timeText,
+        place,
+        body,
+        needSignup: true,
+        signupNote: "学生自主发布，报名结果仅在本机记录",
+        risk: risk || undefined
+      };
+      const ins = inspect(item);
+      if (ins.risky) {
+        const ok = confirm("系统检测到这更像推广或私人加微信息。仍要发布吗？发布后会标成“需留意”。");
+        if (!ok) return;
+      } else if (ins.missing.length) {
+        const ok = confirm("以下信息仍空着：" + ins.missing.join("、") + "。题目要求不编造，将按“材料未提供”展示。确认发布？");
+        if (!ok) return;
+      }
+      saveState({ published: state().published.concat(item) });
+      view = "all";
+      filter = "student";
+      selected = item.id;
+      document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.view === "all"));
+      toast("已发布并进入信息流");
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
